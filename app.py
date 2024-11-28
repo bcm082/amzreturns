@@ -66,16 +66,17 @@ def dashboard():
 # Route for Products
 @app.route('/products', methods=['GET', 'POST'])
 def products():
-    search_results = []
+    search_results = {'summary': None, 'products': []}
     search_term = request.form.get('search_term', '').strip()  # Get search term from the form
 
     if search_term:  # Only query if there's a search term
-            search_results = search_products(search_term)
+        search_results = search_products(search_term)
 
     return render_template(
         'products.html',
         search_term=search_term,
-        products=search_results
+        summary=search_results['summary'],
+        products=search_results['products']
     )
 
 

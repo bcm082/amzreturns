@@ -182,6 +182,16 @@ def search_products(search_term):
         cursor.execute(main_query, (search_pattern, search_pattern))
         products = cursor.fetchall()
         
+        # Calculate summary totals
+        summary = {
+            'total_returns_2023': sum(p['returns_2023'] for p in products),
+            'total_sales_2023': sum(p['sales_2023'] for p in products),
+            'total_returns_2024': sum(p['returns_2024'] for p in products),
+            'total_sales_2024': sum(p['sales_2024'] for p in products)
+        }
+        summary['return_rate_2023'] = round((summary['total_returns_2023'] / summary['total_sales_2023']) * 100, 2) if summary['total_sales_2023'] else 0
+        summary['return_rate_2024'] = round((summary['total_returns_2024'] / summary['total_sales_2024']) * 100, 2) if summary['total_sales_2024'] else 0
+        
         # Execute reasons query
         cursor.execute(reasons_query, (search_pattern, search_pattern))
         reasons = cursor.fetchall()
@@ -202,7 +212,7 @@ def search_products(search_term):
         for product in products:
             product['return_reasons'] = reasons_by_asin.get(product['asin'], [])
         
-        return products
+        return {'summary': summary, 'products': products}
     finally:
         cursor.close()
         conn.close()

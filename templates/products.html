@@ -17,6 +17,38 @@
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
 
+    {% if products|length > 1 %}
+    <div class="summary-table mb-4">
+        <h3 class="text-center">Summary of Results</h3>
+        <table class="table table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th colspan="3" class="text-center">2023</th>
+                    <th colspan="3" class="text-center">2024</th>
+                </tr>
+                <tr>
+                    <th class="text-center">Total Returns</th>
+                    <th class="text-center">Total Sales</th>
+                    <th class="text-center">Return Rate</th>
+                    <th class="text-center">Total Returns</th>
+                    <th class="text-center">Total Sales</th>
+                    <th class="text-center">Return Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-center">{{ summary.total_returns_2023 }}</td>
+                    <td class="text-center">{{ summary.total_sales_2023 }}</td>
+                    <td class="text-center">{{ summary.return_rate_2023 }}%</td>
+                    <td class="text-center">{{ summary.total_returns_2024 }}</td>
+                    <td class="text-center">{{ summary.total_sales_2024 }}</td>
+                    <td class="text-center">{{ summary.return_rate_2024 }}%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
     <!-- Results Table -->
     {% if products %}
     <div class="table-responsive">
