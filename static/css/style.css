@@ -1,0 +1,67 @@
+body {
+    background-color: #f8f9fa; /* Light gray background */
+    font-family: Arial, sans-serif;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-control {
+    border-radius: 5px;
+}
+
+.btn-primary.btn-sm {
+    width: auto !important; /* Ensures width is no longer 100% */
+}
+
+/* Ensure chart canvas fits the container */
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 2000px;
+    margin: 0 auto;
+}
+
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Table center alignment */
+.table th, .table td {
+    text-align: center;
+}
+
+
+/* General table styles */
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.table-dark th {
+    color: white;
+}
+
+/* Highlight for 2023 columns */
+.year-2023 {
+    background-color: #f8f9fa72 !important; /* Light grey */
+}
+
+/* Highlight for 2024 columns */
+.year-2024 {
+    background-color: #e9ecef52 !important; /* Slightly darker grey */
+}

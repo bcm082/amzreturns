@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Dashboard Header -->
+    <div class="text-center">
+        <h2>Welcome, {{ username }}!</h2>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="mt-4">
+        <h3 class="text-center">Returns Chart</h3>
+        <div class="chart-container">
+            <canvas id="returnsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="mt-5">
+        <h3 class="text-center">Returns Data Table</h3>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Year</th>
+                        <th>Jan</th>
+                        <th>Feb</th>
+                        <th>Mar</th>
+                        <th>Apr</th>
+                        <th>May</th>
+                        <th>Jun</th>
+                        <th>Jul</th>
+                        <th>Aug</th>
+                        <th>Sep</th>
+                        <th>Oct</th>
+                        <th>Nov</th>
+                        <th>Dec</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="returnsTableBody">
+                    <!-- Table rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <!-- Top Returned SKUs Section -->
+    <div class="mt-5">
+        <h3 class="text-center">Top Returned SKUs (2024)</h3>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>SKU</th>
+                        <th>Return Quantity</th>
+                        <th>Total Sold</th>
+                        <th>Percentage of Returns</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_returned_skus %}
+                    <tr>
+                        <td>{{ item.merchant_sku }}</td>
+                        <td>{{ item.total_returns }}</td>
+                        <td>{{ item.total_sold }}</td>
+                        <td>
+                            {% if item.total_sold and item.total_sold > 0 %}
+                            {{ (item.total_returns / item.total_sold * 100) | round(2) }}%
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const salesGraphData = {{ sales_graph_data|tojson }};
+</script>
+{% endblock %}
