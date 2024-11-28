@@ -46,6 +46,25 @@
                 </tr>
             </tbody>
         </table>
+        <h4 class="text-center mt-4">Combined Return Reasons</h4>
+        <table class="table table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Return Reason</th>
+                    <th class="text-center">2023 Count</th>
+                    <th class="text-center">2024 Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reason, counts in summary.combined_reasons.items() %}
+                <tr>
+                    <td>{{ reason }}</td>
+                    <td class="text-center">{{ counts.count_2023 }}</td>
+                    <td class="text-center">{{ counts.count_2024 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     {% endif %}
 

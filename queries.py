@@ -182,16 +182,6 @@ def search_products(search_term):
         cursor.execute(main_query, (search_pattern, search_pattern))
         products = cursor.fetchall()
         
-        # Calculate summary totals
-        summary = {
-            'total_returns_2023': sum(p['returns_2023'] for p in products),
-            'total_sales_2023': sum(p['sales_2023'] for p in products),
-            'total_returns_2024': sum(p['returns_2024'] for p in products),
-            'total_sales_2024': sum(p['sales_2024'] for p in products)
-        }
-        summary['return_rate_2023'] = round((summary['total_returns_2023'] / summary['total_sales_2023']) * 100, 2) if summary['total_sales_2023'] else 0
-        summary['return_rate_2024'] = round((summary['total_returns_2024'] / summary['total_sales_2024']) * 100, 2) if summary['total_sales_2024'] else 0
-        
         # Execute reasons query
         cursor.execute(reasons_query, (search_pattern, search_pattern))
         reasons = cursor.fetchall()
@@ -211,6 +201,28 @@ def search_products(search_term):
         # Add reasons to each product
         for product in products:
             product['return_reasons'] = reasons_by_asin.get(product['asin'], [])
+
+        # Calculate summary totals
+        summary = {
+            'total_returns_2023': sum(p['returns_2023'] for p in products),
+            'total_sales_2023': sum(p['sales_2023'] for p in products),
+            'total_returns_2024': sum(p['returns_2024'] for p in products),
+            'total_sales_2024': sum(p['sales_2024'] for p in products)
+        }
+        summary['return_rate_2023'] = round((summary['total_returns_2023'] / summary['total_sales_2023']) * 100, 2) if summary['total_sales_2023'] else 0
+        summary['return_rate_2024'] = round((summary['total_returns_2024'] / summary['total_sales_2024']) * 100, 2) if summary['total_sales_2024'] else 0
+
+        # Aggregate return reasons
+        combined_reasons = {}
+        for product in products:
+            for reason in product['return_reasons']:
+                reason_text = reason['reason']
+                if reason_text not in combined_reasons:
+                    combined_reasons[reason_text] = {'count_2023': 0, 'count_2024': 0}
+                combined_reasons[reason_text]['count_2023'] += reason['count_2023']
+                combined_reasons[reason_text]['count_2024'] += reason['count_2024']
+
+        summary['combined_reasons'] = combined_reasons
         
         return {'summary': summary, 'products': products}
     finally:
