@@ -13,6 +13,14 @@ db_config = {
     'database': 'returns_db'
 }
 
+# Root route
+@app.route('/')
+def root():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    else:
+        return redirect(url_for('login'))
+
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
