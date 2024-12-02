@@ -127,6 +127,26 @@ def parse_date(date_str):
         logging.error(f"Error parsing date: {e}")
         raise
 
+# Helper function to parse purchase_date and extract month and year
+def parse_purchase_date(date_str):
+    try:
+        logging.debug(f"Parsing purchase date string: {date_str}")
+        date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S%z")
+        month = date_obj.strftime("%B")
+        year = date_obj.year
+        return month, year
+    except ValueError as e:
+        logging.error(f"Error parsing purchase date: {e}")
+        raise
+
+# Helper function to convert and handle blank values for numeric fields
+def convert_to_float(value):
+    try:
+        return float(value.strip()) if value.strip() != '' else 0.0
+    except ValueError:
+        logging.error(f"Invalid numeric value: {value}")
+        return None
+
 # Route for Upload
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -241,6 +261,131 @@ def upload_file():
                 conn.close()
 
                 flash('File uploaded and processed successfully!')
+                return redirect(url_for('upload_file'))
+
+        # Add logic to handle sales table upload
+        elif selected_table == 'sales':
+            with open(file_path, newline='', encoding='latin-1') as txtfile:
+                reader = csv.DictReader(txtfile, delimiter='\t')
+                expected_headers = set(reader.fieldnames)
+                # Map file headers to database fields
+                header_map = {
+                    'amazon-order-id': 'amazon_order_id',
+                    'merchant-order-id': 'merchant_order_id',
+                    'purchase-date': 'purchase_date',
+                    'last-updated-date': 'last_updated_date',
+                    'order-status': 'order_status',
+                    'fulfillment-channel': 'fulfillment_channel',
+                    'sales-channel': 'sales_channel',
+                    'order-channel': 'order_channel',
+                    'url': 'url',
+                    'ship-service-level': 'ship_service_level',
+                    'product-name': 'product_name',
+                    'sku': 'sku',
+                    'asin': 'asin',
+                    'number-of-items': 'number_of_items',
+                    'item-status': 'item_status',
+                    'tax-collection-model': 'tax_collection_model',
+                    'tax-collection-responsible-party': 'tax_collection_responsible_party',
+                    'quantity': 'quantity',
+                    'currency': 'currency',
+                    'item-price': 'item_price',
+                    'item-tax': 'item_tax',
+                    'shipping-price': 'shipping_price',
+                    'shipping-tax': 'shipping_tax',
+                    'gift-wrap-price': 'gift_wrap_price',
+                    'gift-wrap-tax': 'gift_wrap_tax',
+                    'item-promotion-discount': 'item_promotion_discount',
+                    'ship-promotion-discount': 'ship_promotion_discount',
+                    'ship-city': 'ship_city',
+                    'ship-state': 'ship_state',
+                    'ship-postal-code': 'ship_postal_code',
+                    'ship-country': 'ship_country',
+                    'promotion-ids': 'promotion_ids',
+                    'payment-method-details': 'payment_method_details',
+                    'is-business-order': 'is_business_order',
+                    'purchase-order-number': 'purchase_order_number',
+                    'price-designation': 'price_designation',
+                    'customized-url': 'customized_url',
+                    'customized-page': 'customized_page',
+                    'signature-confirmation-recommended': 'signature_confirmation_recommended'
+                }
+                # Trim whitespace from expected headers
+                expected_headers = {h.strip() for h in expected_headers}
+                # Trim whitespace from header_map keys
+                header_map = {k.strip(): v for k, v in header_map.items()}
+                # Convert file headers to database fields
+                converted_headers = {header_map.get(h, h) for h in expected_headers}
+                required_headers = set(header_map.values())
+
+                # Debugging: Print headers for comparison
+                logging.debug(f"Expected Headers: {expected_headers}")
+                logging.debug(f"Converted Headers: {converted_headers}")
+                logging.debug(f"Required Headers: {required_headers}")
+
+                # Check if headers match
+                if not required_headers.issubset(converted_headers):
+                    flash('File headers do not match the expected headers.')
+                    return redirect(url_for('upload_file'))
+
+                # Prepare data for insertion
+                data_to_insert = []
+                for row in reader:
+                    # Convert and handle blank values for numeric fields
+                    row['number-of-items'] = convert_to_float(row['number-of-items'])
+                    row['item-tax'] = convert_to_float(row['item-tax'])
+                    row['shipping-price'] = convert_to_float(row['shipping-price'])
+                    row['shipping-tax'] = convert_to_float(row['shipping-tax'])
+                    row['gift-wrap-price'] = convert_to_float(row['gift-wrap-price'])
+                    row['gift-wrap-tax'] = convert_to_float(row['gift-wrap-tax'])
+                    row['item-promotion-discount'] = convert_to_float(row['item-promotion-discount'])
+                    row['ship-promotion-discount'] = convert_to_float(row['ship-promotion-discount'])
+                    row['item-price'] = convert_to_float(row['item-price'])
+                    row['is-business-order'] = 1 if row['is-business-order'].lower() == 'true' else 0
+
+                    # Trim whitespace from row keys
+                    row = {k.strip(): v for k, v in row.items()}
+                    month, year = parse_purchase_date(row['purchase-date'])
+                    # Prepare the row for insertion, excluding headers
+                    data = {header_map[k]: v for k, v in row.items()}
+                    data.update({'month': month, 'year': year, 'last_updated': datetime.now()})
+                    if 'signature_confirmation_recommended' in data:
+                        data['signature_confirmation_recommended'] = 1 if data['signature_confirmation_recommended'].lower() == 'true' else 0
+                    data_to_insert.append(data)
+
+                # Insert data into the sales table
+                conn = mysql.connector.connect(**db_config)
+                cursor = conn.cursor()
+                cursor.executemany("""
+                    INSERT INTO sales (
+                        `amazon_order_id`, `merchant_order_id`, `purchase_date`, `last_updated_date`,
+                        `order_status`, `fulfillment_channel`, `sales_channel`, `order_channel`, `url`,
+                        `ship_service_level`, `product_name`, `sku`, `asin`, `number_of_items`, `item_status`,
+                        `tax_collection_model`, `tax_collection_responsible_party`, `quantity`, `currency`,
+                        `item_price`, `item_tax`, `shipping_price`, `shipping_tax`, `gift_wrap_price`,
+                        `gift_wrap_tax`, `item_promotion_discount`, `ship_promotion_discount`, `ship_city`,
+                        `ship_state`, `ship_postal_code`, `ship_country`, `promotion_ids`,
+                        `payment_method_details`, `is_business_order`, `purchase_order_number`,
+                        `price_designation`, `customized_url`, `customized_page`,
+                        `signature_confirmation_recommended`, `month`, `year`, `last_updated`
+                    ) VALUES (
+                        %(amazon_order_id)s, %(merchant_order_id)s, %(purchase_date)s, %(last_updated_date)s,
+                        %(order_status)s, %(fulfillment_channel)s, %(sales_channel)s, %(order_channel)s, %(url)s,
+                        %(ship_service_level)s, %(product_name)s, %(sku)s, %(asin)s, %(number_of_items)s, %(item_status)s,
+                        %(tax_collection_model)s, %(tax_collection_responsible_party)s, %(quantity)s, %(currency)s,
+                        %(item_price)s, %(item_tax)s, %(shipping_price)s, %(shipping_tax)s, %(gift_wrap_price)s,
+                        %(gift_wrap_tax)s, %(item_promotion_discount)s, %(ship_promotion_discount)s, %(ship_city)s,
+                        %(ship_state)s, %(ship_postal_code)s, %(ship_country)s, %(promotion_ids)s,
+                        %(payment_method_details)s, %(is_business_order)s, %(purchase_order_number)s,
+                        %(price_designation)s, %(customized_url)s, %(customized_page)s,
+                        %(signature_confirmation_recommended)s, %(month)s, %(year)s, %(last_updated)s
+                    )
+                """, data_to_insert)
+                conn.commit()
+                cursor.close()
+                conn.close()
+
+                flash('File uploaded and processed successfully!', 'success')
                 return redirect(url_for('upload_file'))
 
     return render_template('upload.html')
