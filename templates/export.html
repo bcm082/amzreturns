@@ -4,5 +4,14 @@
 
 {% block content %}
     <h2 class="text-center">Export Data</h2>
-    <p class="text-center">Use this page to export your data. Functionality coming soon!</p>
+    <form method="POST" action="{{ url_for('export') }}" class="text-center">
+        <div class="form-group">
+            <label for="table">Select Table to Export:</label>
+            <select name="table" id="table" class="form-control">
+                <option value="returns">Returns</option>
+                <option value="sales">Sales</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Export as CSV</button>
+    </form>
 {% endblock %}

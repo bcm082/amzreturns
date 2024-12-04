@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import mysql.connector
 import os
 import logging
@@ -106,9 +106,36 @@ def products():
 
 
 # Route for Export
-@app.route('/export')
+@app.route('/export', methods=['GET', 'POST'])
 def export():
-    # Logic for exporting data can be implemented here
+    if request.method == 'POST':
+        selected_table = request.form['table']
+
+        # Connect to the database
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        # Query to fetch all data from the selected table
+        query = f"SELECT * FROM {selected_table}"
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+        # Get column headers
+        headers = [i[0] for i in cursor.description]
+
+        cursor.close()
+        conn.close()
+
+        # Create CSV file
+        csv_file_path = f'/tmp/{selected_table}_export.csv'
+        with open(csv_file_path, 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(headers)
+            csvwriter.writerows(rows)
+
+        # Send the file to the user
+        return send_file(csv_file_path, as_attachment=True)
+
     return render_template('export.html')
 
 
