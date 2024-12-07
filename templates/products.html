@@ -6,16 +6,42 @@
 <div class="container mt-5">
     <h2 class="text-center mb-4">Product Returns Analysis</h2>
 
-    <!-- Search Bar -->
-    <form method="POST" action="{{ url_for('products') }}" class="d-flex mb-4">
+    <form method="POST" action="{{ url_for('products') }}" class="d-flex mb-4 position-relative">
         <input 
             type="text" 
             name="search_term" 
             class="form-control me-2" 
+            id="search-bar"
             placeholder="Search by ASIN or SKU..." 
             value="{{ search_term if search_term }}">
+        <ul class="list-group position-absolute w-100" id="suggestions" style="z-index: 1000; margin-top: 5px;"></ul>
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
+    <script>
+        document.getElementById('search-bar').addEventListener('input', function() {
+            const query = this.value;
+            if (query.length > 1) {
+                fetch(`/suggestions?query=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const suggestions = document.getElementById('suggestions');
+                        suggestions.innerHTML = '';
+                        data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.classList.add('list-group-item');
+                            li.textContent = item;
+                            li.onclick = function() {
+                                document.getElementById('search-bar').value = item;
+                                suggestions.innerHTML = '';
+                            };
+                            suggestions.appendChild(li);
+                        });
+                    });
+            } else {
+                document.getElementById('suggestions').innerHTML = '';
+            }
+        });
+    </script>
 
     {% if products|length > 1 %}
     <div class="summary-table mb-4">

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify
 import mysql.connector
 import os
 import logging
@@ -416,6 +416,33 @@ def upload_file():
                 return redirect(url_for('upload_file'))
 
     return render_template('upload.html')
+
+@app.route('/suggestions', methods=['GET'])
+def suggestions():
+    query = request.args.get('query', '')
+    if not query:
+        return jsonify([])
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    try:
+        # Query to fetch merchant SKUs matching the search term
+        cursor.execute("""
+            SELECT DISTINCT `Merchant SKU`
+            FROM returns
+            WHERE `Merchant SKU` LIKE %s
+            LIMIT 10
+        """, (f"%{query}%",))
+        results = cursor.fetchall()
+
+        # Extract SKUs from the query result
+        skus = [row[0] for row in results]
+    finally:
+        cursor.close()
+        conn.close()
+
+    return jsonify(skus)
 
 
 if __name__ == '__main__':
