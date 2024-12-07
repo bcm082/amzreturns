@@ -92,7 +92,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>{{ product.asin }}</strong></td>
+                    <td><a href="https://www.amazon.com/dp/{{ product.asin }}" target="_blank"><strong>{{ product.asin }}</strong></a></td>
                     <td>{{ product.merchant_skus }}</td>
                     <!-- 2023 -->
                     <td class="text-center {% if product.returns_2023 > 0 %}text-danger{% endif %}">
