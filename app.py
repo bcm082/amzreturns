@@ -109,25 +109,31 @@ def products():
 @app.route('/export', methods=['GET', 'POST'])
 def export():
     if request.method == 'POST':
-        selected_table = request.form['table']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
 
         # Connect to the database
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
-        # Query to fetch all data from the selected table
-        query = f"SELECT * FROM {selected_table}"
-        cursor.execute(query)
+        # Query to fetch data from the returns table
+        query = '''
+        SELECT ASIN, `Merchant SKU`, SUM(`Return quantity`) AS `Return quantity`
+        FROM returns
+        WHERE STR_TO_DATE(CONCAT('01-', month, '-', year), '%d-%M-%Y') BETWEEN %s AND %s
+        GROUP BY ASIN, `Merchant SKU`
+        '''
+        cursor.execute(query, (start_date, end_date))
         rows = cursor.fetchall()
 
-        # Get column headers
-        headers = [i[0] for i in cursor.description]
+        # Define CSV headers
+        headers = ['ASIN', 'Merchant SKU', 'Return quantity']
 
         cursor.close()
         conn.close()
 
         # Create CSV file
-        csv_file_path = f'/tmp/{selected_table}_export.csv'
+        csv_file_path = '/tmp/returns_export.csv'
         with open(csv_file_path, 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(headers)
