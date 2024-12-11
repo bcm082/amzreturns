@@ -72,6 +72,7 @@
                 </tr>
             </tbody>
         </table>
+        <br>
         <h4 class="text-center mt-4">Combined Return Reasons</h4>
         <table class="table table-hover table-bordered">
             <thead class="table-dark">
@@ -95,8 +96,10 @@
     {% endif %}
 
     <!-- Results Table -->
+     <br>
+    <h3 class="text-center">Breakdown by Sizes</h3>
     {% if products %}
-    <div class="table-responsive">
+    <div class="table-responsive"> 
         {% for product in products %}
         <hr class="my-4">
         <table class="table table-hover table-bordered">
