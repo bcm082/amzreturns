@@ -82,12 +82,24 @@ def dashboard():
     sales_graph_data_2025 = sales_graph_data.get(2025, [0] * 12)  # Extract 2025 data
     top_returned_skus = get_top_returned_skus()
 
+    # Fetch the last updated timestamp
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT MAX(last_updated) as last_updated FROM returns")
+    last_updated = cursor.fetchone()['last_updated']
+    cursor.close()
+    conn.close()
+
+    # Format the last updated timestamp to show month-day-year (all numeric)
+    last_updated_formatted = last_updated.strftime('%m-%d-%Y')
+
     return render_template(
         'dashboard.html',
         username=session['email'],
         sales_graph_data=sales_graph_data,
         sales_graph_data_2025=sales_graph_data_2025,
-        top_returned_skus=top_returned_skus
+        top_returned_skus=top_returned_skus,
+        last_updated=last_updated_formatted
     )
 
 # Route for Products
