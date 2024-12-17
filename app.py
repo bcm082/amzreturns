@@ -79,12 +79,14 @@ def dashboard():
 
     # Fetch data for the graph
     sales_graph_data = get_sales_for_graph()
+    sales_graph_data_2025 = sales_graph_data.get(2025, [0] * 12)  # Extract 2025 data
     top_returned_skus = get_top_returned_skus()
 
     return render_template(
         'dashboard.html',
         username=session['email'],
         sales_graph_data=sales_graph_data,
+        sales_graph_data_2025=sales_graph_data_2025,
         top_returned_skus=top_returned_skus
     )
 
@@ -96,6 +98,12 @@ def products():
 
     if search_term:  # Only query if there's a search term
         search_results = search_products(search_term)
+
+        # Ensure 2025 data is included in the results
+        for product in search_results['products']:
+            product['returns_2025'] = product.get('returns_2025', 0)
+            product['sales_2025'] = product.get('sales_2025', 0)
+            product['return_rate_2025'] = round((product['returns_2025'] / product['sales_2025']) * 100, 2) if product['sales_2025'] else 0
 
     return render_template(
         'products.html',

@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const yearColors = {
         '2023': 'darkgreen',
         '2024': 'red',
+        '2025': 'blue',
     };
 
     const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
