@@ -6,7 +6,7 @@ As of now, there is no API integration. You'll need to export the reports from s
 
 # Installation
 
-1. Clone the repository: `git clone https://github.com/your-username/amazon-returns-reports-app.git`
+1. Clone the repository: `git clone https://github.com/bcm082/amzreturns.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 3. Run the application: `python app.py`
 
